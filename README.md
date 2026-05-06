@@ -14,16 +14,17 @@ Olist是巴西头部电商平台，本项目以其公开数据集为基础，通
 ---
 
 ## 📊 数据说明
-本次分析使用Olist 7张核心业务表，覆盖电商全链路数据：
-| 表名 | 业务含义 |
-|------|----------|
-| `customers` | 用户基础信息 |
-| `orders` | 订单主表（时间/状态） |
-| `order_payments` | 订单支付明细 |
-| `order_items` | 订单商品明细 |
-| `products` | 商品基础信息 |
-| `order_reviews` | 用户评价数据 |
-| `category_translation` | 商品品类翻译表 |
+本次分析使用Olist 7张核心业务表，覆盖电商全链路数据，所有表通过 `order_id` 关联：
+
+| 表名 | 业务含义 | 关键字段说明 |
+|------|----------|--------------|
+| `customers` | 用户基础信息 | `customer_id`：用户唯一ID；`customer_city`/`state`：用户地域；`customer_unique_id`：用户去重标识 |
+| `orders` | 订单主表（核心） | `order_id`：订单唯一ID；`customer_id`：关联用户；`order_status`：订单状态（delivered=已送达）；`order_purchase_timestamp`：下单时间 |
+| `order_payments` | 订单支付明细 | `order_id`：关联订单；`payment_value`：支付金额（算GMV核心字段）；`payment_type`：支付方式；`payment_installments`：分期数 |
+| `order_items` | 订单商品明细 | `order_id`：关联订单；`product_id`：关联商品；`price`：商品单价；`freight_value`：运费；`seller_id`：关联卖家 |
+| `products` | 商品基础信息 | `product_id`：商品唯一ID；`product_category_name`：商品品类；`product_weight_g`：商品重量 |
+| `order_reviews` | 用户评价数据 | `order_id`：关联订单；`review_score`：评价分数（1-5分）；`review_comment_message`：评价内容 |
+| `category_translation` | 商品品类翻译表 | `product_category_name`：葡萄牙语品类名；`product_category_name_english`：英文品类名 |
 
 ---
 
