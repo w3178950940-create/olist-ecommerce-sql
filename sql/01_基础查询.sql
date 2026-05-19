@@ -17,9 +17,7 @@ SELECT
 FROM orders;
 
 -- 4. 预览订单表前5行样例数据
-SELECT * 
-FROM orders 
-LIMIT 5;
+SELECT * FROM orders LIMIT 5;
 
 -- 5. 统计独立用户数
 SELECT COUNT(DISTINCT customer_unique_id) AS total_customers
