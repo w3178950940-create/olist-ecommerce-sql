@@ -5,12 +5,10 @@
 -- =============================================
 
 -- 1. 查看订单所有独立状态（去重）
-SELECT DISTINCT order_status 
-FROM orders;
+SELECT DISTINCT order_status FROM orders;
 
 -- 2. 统计订单表总行数
-SELECT COUNT(*) AS total_orders
-FROM orders;
+SELECT COUNT(*) FROM orders;
 
 -- 3. 查询订单时间起止范围
 SELECT
