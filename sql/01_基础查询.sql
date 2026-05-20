@@ -20,17 +20,13 @@ FROM orders;
 SELECT * FROM orders LIMIT 5;
 
 -- 5. 统计独立用户数
-SELECT COUNT(DISTINCT customer_unique_id) AS total_customers
-FROM customers;
+SELECT COUNT(DISTINCT customer_unique_id) AS total_customers FROM customers;
 
 -- 6. 统计订单项表总行数
-SELECT COUNT(*) AS total_order_items
-FROM order_items;
+SELECT COUNT(*) AS total_order_items FROM order_items;
 
 -- 7. 统计平台累计支付总金额
-SELECT SUM(payment_value) AS total_payment_amount
-FROM order_payments;
+SELECT SUM(payment_value) AS total_payment_amount FROM order_payments;
 
 -- 8. 统计商品品类数量
-SELECT COUNT(DISTINCT product_category_name) AS total_product_categories
-FROM products;
+SELECT COUNT(DISTINCT product_category_name) AS total_product_categories FROM products;
