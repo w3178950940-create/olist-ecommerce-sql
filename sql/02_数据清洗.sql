@@ -10,6 +10,14 @@ SELECT
     SUM(CASE WHEN order_delivered_customer_date IS NULL THEN 1 ELSE 0 END) AS missing_deliver_date
 FROM orders;
 
+-- 未交付订单校验
+SELECT 
+  order_status,
+  COUNT(*) AS order_count
+FROM orders
+WHERE order_delivered_customer_date IS NULL
+GROUP BY order_status;
+
 -- 2. 订单表重复订单ID检查
 SELECT order_id, COUNT(*)
 FROM orders
