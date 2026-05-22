@@ -46,6 +46,12 @@ SELECT *
 FROM order_payments
 WHERE payment_value <= 0;
 
+-- 验证支付金额=0的支付方式
+SELECT payment_type, COUNT(*)
+FROM order_payments
+WHERE payment_value = 0
+GROUP BY payment_type;
+
 -- 7. 商品表品类缺失检查
 SELECT
     COUNT(*) AS total,
