@@ -47,11 +47,11 @@ ORDER BY order_count DESC;
 
 -- 6. 商品品类销量 TOP10
 SELECT
-  p.product_category_name,  -- 1. 维度：商品品类（来自商品表）
-  COUNT(oi.order_id) AS sale_count  -- 2. 指标：统计每个品类的销量
-FROM order_items oi  -- 3. 主表：订单项表（记录每一件卖出的商品，销量来源）
-JOIN products p  -- 4. 关联商品表（拿品类名称）
-  ON oi.product_id = p.product_id  -- 5. 关联条件：商品ID（外键）
-GROUP BY p.product_category_name  -- 6. 按品类分组，分别统计销量
-ORDER BY sale_count DESC  -- 7. 按销量从高到低排序
-LIMIT 10;  -- 8. 只取前10名，就是销量TOP10
+  p.product_category_name,
+  COUNT(oi.order_id) AS sale_count
+FROM order_items oi
+JOIN products p
+  ON oi.product_id = p.product_id
+GROUP BY p.product_category_name
+ORDER BY sale_count DESC
+LIMIT 10;
