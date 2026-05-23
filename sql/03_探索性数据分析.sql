@@ -3,13 +3,13 @@
 -- 维度：时间趋势、订单状态、支付方式、评价评分、地域销量、品类销量
 -- =============================================
 
--- 1. 按年月统计订单量趋势
-SELECT
-  DATE_FORMAT(order_purchase_timestamp,'%Y-%m') AS order_month,
+-- 1. 订单下单时段分布分析
+SELECT 
+  HOUR(order_purchase_timestamp) AS order_hour,
   COUNT(order_id) AS order_num
-FROM orders
-GROUP BY order_month
-ORDER BY order_month;
+FROM orders 
+GROUP BY order_hour 
+ORDER BY order_hour;
 
 -- 2. 各订单状态数量分布
 SELECT
