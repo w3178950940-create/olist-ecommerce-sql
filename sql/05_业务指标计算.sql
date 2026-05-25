@@ -5,41 +5,38 @@
 
 -- 1. 平台总 GMV（总成交金额）
 SELECT
-  ROUND(SUM(payment_value), 2) AS total_gmv
+ROUND(SUM(payment_value), 2) AS total_gmv
 FROM order_payments;
 
 -- 2. 平台总有效订单量（已交付）
 SELECT
-  COUNT(DISTINCT order_id) AS total_orders
+COUNT(DISTINCT order_id) AS total_orders
 FROM orders
 WHERE order_status = 'delivered';
 
 -- 3. 平台客单价（GMV / 有效订单数）
 SELECT
-  ROUND(
-    SUM(op.payment_value) / COUNT(DISTINCT o.order_id),
-    2
-  ) AS avg_order_price
+ROUND(SUM(op.payment_value) / COUNT(DISTINCT o.order_id),2) AS avg_order_price
 FROM orders o
 JOIN order_payments op
-  ON o.order_id = op.order_id
+ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered';
 
 -- 4. 平台累计消费用户数
 SELECT
-  COUNT(DISTINCT c.customer_unique_id) AS total_buy_users
+COUNT(DISTINCT c.customer_unique_id) AS total_buy_users
 FROM orders o
 JOIN customers c
-  ON o.customer_id = c.customer_id
+ON o.customer_id = c.customer_id
 WHERE o.order_status = 'delivered';
 
 -- 5. 各月 GMV（按月统计）
 SELECT
-  DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
-  ROUND(SUM(op.payment_value), 2) AS monthly_gmv
+DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
+ROUND(SUM(op.payment_value), 2) AS monthly_gmv
 FROM orders o
 JOIN order_payments op
-  ON o.order_id = op.order_id
+ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered'
 GROUP BY month
 ORDER BY month;
