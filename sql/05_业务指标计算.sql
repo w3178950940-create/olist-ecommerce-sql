@@ -30,25 +30,26 @@ INNER JOIN customers c
 ON o.customer_id = c.customer_id
 WHERE o.order_status = 'delivered';
 
--- 5. 各月 GMV（按月统计）
+-- 5. 各时段 GMV（按小时统计）
 SELECT
-DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
-ROUND(SUM(op.payment_value), 2) AS monthly_gmv
+HOUR(o.order_approved_at) AS order_hour,
+ROUND(SUM(op.payment_value),2) AS total_gmv
 FROM orders o
-INNER JOIN order_payments op
-ON o.order_id = op.order_id
+INNER JOIN order_payments op ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered'
-GROUP BY month
-ORDER BY month;
+AND o.order_approved_at IS NOT NULL
+GROUP BY order_hour
+ORDER BY order_hour;
 
--- 6. 各月订单量
+-- 6. 各时段订单量
 SELECT
-DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
-COUNT(DISTINCT o.order_id) AS monthly_orders
+HOUR(o.order_approved_at) AS order_hour,
+COUNT(DISTINCT o.order_id) AS order_count
 FROM orders o
 WHERE o.order_status = 'delivered'
-GROUP BY month
-ORDER BY month;
+AND o.order_approved_at IS NOT NULL
+GROUP BY order_hour
+ORDER BY order_hour;
 
 -- 7. 各商品品类销售额 TOP10
 SELECT
