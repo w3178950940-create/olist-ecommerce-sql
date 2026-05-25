@@ -18,7 +18,7 @@ WHERE order_status = 'delivered';
 SELECT
 ROUND(SUM(op.payment_value) / COUNT(DISTINCT o.order_id),2) AS avg_order_price
 FROM orders o
-JOIN order_payments op
+INNER JOIN order_payments op
 ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered';
 
@@ -26,7 +26,7 @@ WHERE o.order_status = 'delivered';
 SELECT
 COUNT(DISTINCT c.customer_unique_id) AS total_buy_users
 FROM orders o
-JOIN customers c
+INNER JOIN customers c
 ON o.customer_id = c.customer_id
 WHERE o.order_status = 'delivered';
 
@@ -35,7 +35,7 @@ SELECT
 DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
 ROUND(SUM(op.payment_value), 2) AS monthly_gmv
 FROM orders o
-JOIN order_payments op
+INNER JOIN order_payments op
 ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered'
 GROUP BY month
@@ -43,8 +43,8 @@ ORDER BY month;
 
 -- 6. 各月订单量
 SELECT
-  DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
-  COUNT(DISTINCT o.order_id) AS monthly_orders
+DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS month,
+COUNT(DISTINCT o.order_id) AS monthly_orders
 FROM orders o
 WHERE o.order_status = 'delivered'
 GROUP BY month
@@ -52,12 +52,12 @@ ORDER BY month;
 
 -- 7. 各商品品类销售额 TOP10
 SELECT
-  p.product_category_name,
-  ROUND(SUM(oi.price), 2) AS category_sales,
-  COUNT(DISTINCT o.order_id) AS category_orders
+p.product_category_name,
+ROUND(SUM(oi.price), 2) AS category_sales,
+COUNT(DISTINCT o.order_id) AS category_orders
 FROM orders o
-JOIN order_items oi ON o.order_id = oi.order_id
-JOIN products p ON oi.product_id = p.product_id
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+INNER JOIN products p ON oi.product_id = p.product_id
 WHERE o.order_status = 'delivered'
 GROUP BY p.product_category_name
 ORDER BY category_sales DESC
@@ -65,12 +65,12 @@ LIMIT 10;
 
 -- 8. 各州销售额 TOP10
 SELECT
-  c.customer_state,
-  ROUND(SUM(op.payment_value), 2) AS state_sales,
-  COUNT(DISTINCT o.order_id) AS state_orders
+c.customer_state,
+ROUND(SUM(op.payment_value), 2) AS state_sales,
+COUNT(DISTINCT o.order_id) AS state_orders
 FROM orders o
-JOIN customers c ON o.customer_id = c.customer_id
-JOIN order_payments op ON o.order_id = op.order_id
+INNER JOIN customers c ON o.customer_id = c.customer_id
+INNER JOIN order_payments op ON o.order_id = op.order_id
 WHERE o.order_status = 'delivered'
 GROUP BY c.customer_state
 ORDER BY state_sales DESC
