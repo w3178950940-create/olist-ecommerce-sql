@@ -9,10 +9,10 @@
 ## 二、核心工具与优化规范
 ### 1. EXPLAIN 执行计划核心指标
 `EXPLAIN` 是SQL性能分析的核心工具，通过解析语句真实执行逻辑，精准定位性能短板，重点关注四个核心字段：
-- **`type`**：查询访问类型，`ALL` 表示全表扫描（最差），`ref` 表示索引匹配（优良）；
-- **`key`**：实际命中的索引名称，为空则说明未使用任何索引；
-- **`rows`**：数据库扫描的数据行数，数值越小，IO开销越低、效率越高；
-- **`Extra`**：附加执行信息，`Using temporary`/`Using filesort` 为典型性能瓶颈，`Using index` 表示覆盖索引（最优状态）。
+- **type**：查询访问类型，`ALL` 表示全表扫描（最差），`ref` 表示索引匹配（优良）；
+- **key**：实际命中的索引名称，为空则说明未使用任何索引；
+- **rows**：数据库扫描的数据行数，数值越小，IO开销越低、效率越高；
+- **Extra**：附加执行信息，`Using temporary`/`Using filesort` 为典型性能瓶颈，`Using index` 表示覆盖索引（最优状态）。
 
 ### 2. 复合索引设计原则
 针对多条件、多逻辑的复杂查询，优先创建**复合索引**，字段顺序严格遵循：
@@ -27,21 +27,21 @@
 三表内连接查询，筛选已交付订单，按客户所在州分组统计销售额与订单量，是区域运营分析的核心报表类查询。
 
 #### 优化前执行计划分析
-- `orders` 表：`type=ref`，命中基础索引，`rows=49271`，但 `Extra` 出现 `Using temporary`，说明分组排序需创建临时表；
-- `customers` 表：`type=ALL`（全表扫描），`key=NULL`，`rows=98849`，未命中任何索引；
-- `order_payments` 表：`type=ALL`（全表扫描），`key=NULL`，`rows=103603`，未命中任何索引；
+- **orders** 表：type=ref，命中基础索引，rows=49271，但 Extra 出现 Using temporary，说明分组排序需创建临时表；
+- **customers** 表：type=ALL（全表扫描），key=NULL，rows=98849，未命中任何索引；
+- **order_payments** 表：type=ALL（全表扫描），key=NULL，rows=103603，未命中任何索引；
 - 核心问题：关联表全表扫描、临时表开销，单表扫描行数超10万，执行效率低下。
 
 #### 索引优化方案
 遵循「筛选→关联→分组/聚合」原则，创建复合索引：
-1. `orders` 表：`idx_orders_status_customer(order_status, customer_id, order_id)`，覆盖筛选条件与关联字段；
-2. `customers` 表：`idx_customers_id_state(customer_id, customer_state)`，覆盖关联键与分组字段；
-3. `order_payments` 表：`idx_payments_id_value(order_id, payment_value)`，覆盖关联键与聚合字段。
+1. **orders** 表：idx_orders_status_customer(order_status, customer_id, order_id)，覆盖筛选条件与关联字段；
+2. **customers** 表：idx_customers_id_state(customer_id, customer_state)，覆盖关联键与分组字段；
+3. **order_payments** 表：idx_payments_id_value(order_id, payment_value)，覆盖关联键与聚合字段。
 
 #### 优化后执行计划分析
-- 三表 `type` 均为 `ref`，全部命中自建索引；
-- `customers` 和 `order_payments` 表 `rows` 降至1，`Extra` 显示 `Using index`，实现覆盖索引，无需回表查询；
-- `Using temporary` 完全消失，无临时表开销；
+- 三表 type 均为 ref，全部命中自建索引；
+- **customers** 和 **order_payments** 表 rows 降至1，Extra 显示 Using index，实现覆盖索引，无需回表查询；
+- Using temporary 完全消失，无临时表开销；
 - 关联表扫描行数从超10万降至1行，查询效率大幅提升。
 
 ---
@@ -51,21 +51,21 @@
 三表关联查询，统计各商品品类销售额并取TOP10，包含关联、聚合、排序、分页逻辑，是平台核心营收榜单查询。
 
 #### 优化前执行计划分析
-- `order_items` 表：`type=ALL`（全表扫描），`key=NULL`，`rows=111690`；
-- `products` 表：`type=ALL`（全表扫描），`key=NULL`，`rows=32771`；
-- `orders` 表：`type=ref`，命中基础索引，`rows=49271`，但存在 `Using temporary`；
+- **order_items** 表：type=ALL（全表扫描），key=NULL，rows=111690；
+- **products** 表：type=ALL（全表扫描），key=NULL，rows=32771；
+- **orders** 表：type=ref，命中基础索引，rows=49271，但存在 Using temporary；
 - 核心问题：订单项与商品表全表扫描，分组排序产生临时表，大数据量下查询延迟明显。
 
 #### 索引优化方案
 根据关联关系、聚合字段、分组字段设计复合索引：
-1. `orders` 表：`idx_orders_status_id(order_status, order_id)`，覆盖筛选条件与关联字段；
-2. `order_items` 表：`idx_order_items_order_price(order_id, product_id, price)`，覆盖关联键与聚合字段；
-3. `products` 表：`idx_products_id_category(product_id, product_category_name)`，覆盖关联键与分组字段。
+1. **orders** 表：idx_orders_status_id(order_status, order_id)，覆盖筛选条件与关联字段；
+2. **order_items** 表：idx_order_items_order_price(order_id, product_id, price)，覆盖关联键与聚合字段；
+3. **products** 表：idx_products_id_category(product_id, product_category_name)，覆盖关联键与分组字段。
 
 #### 优化后执行计划分析
-- 三表 `type` 均为 `ref`，全部命中自建索引；
-- `order_items` 和 `products` 表 `rows` 降至1，`products` 表 `Extra` 显示 `Using index`，实现覆盖索引；
-- `Using temporary` 消失，无临时表与文件排序开销；
+- 三表 type 均为 ref，全部命中自建索引；
+- **order_items** 和 **products** 表 rows 降至1，**products** 表 Extra 显示 Using index，实现覆盖索引；
+- Using temporary 消失，无临时表与文件排序开销；
 - 全流程依托索引完成，榜单查询响应速度稳定。
 
 ---
@@ -80,12 +80,12 @@
 
 #### 索引优化方案
 构建包含筛选条件、时间字段、关联字段的复合索引：
-1. `orders` 表：`idx_orders_status_approved(order_status, order_approved_at, order_id)`，覆盖筛选条件、时间字段与关联字段；
-2. `order_payments` 表：`idx_payments_id_val(order_id, payment_value)`，覆盖关联键与聚合字段。
+1. **orders** 表：idx_orders_status_approved(order_status, order_approved_at, order_id)，覆盖筛选条件、时间字段与关联字段；
+2. **order_payments** 表：idx_payments_id_val(order_id, payment_value)，覆盖关联键与聚合字段。
 
 #### 优化后执行计划分析
-- 两表 `type` 均为 `ref`，全部命中自建索引；
-- `order_payments` 表 `rows` 降至1，`Extra` 显示 `Using index`，实现覆盖索引；
+- 两表 type 均为 ref，全部命中自建索引；
+- **order_payments** 表 rows 降至1，Extra 显示 Using index，实现覆盖索引；
 - 索引有效覆盖筛选、关联、时间分组全流程，数据扫描范围大幅缩小；
 - 时间维度统计效率显著提升，查询耗时明显降低。
 
@@ -96,18 +96,18 @@
 左连接查询，保留全部有效订单数据并匹配用户评价分数，用于用户满意度分析，区别于常规内连接逻辑。
 
 #### 优化前执行计划分析
-- `orders` 表：`type=ref`，命中基础索引，`rows=49271`；
-- `order_reviews` 表：`type=ALL`（全表扫描），`key=NULL`，`rows=97650`，未命中任何索引；
+- **orders** 表：type=ref，命中基础索引，rows=49271；
+- **order_reviews** 表：type=ALL（全表扫描），key=NULL，rows=97650，未命中任何索引；
 - 核心问题：评价表全表扫描，数据匹配效率低，左连接场景下查询性能差。
 
 #### 索引优化方案
 适配左连接查询特性，为筛选字段与关联字段创建索引：
-1. `orders` 表：`idx_orders_status(order_status, order_id)`，覆盖筛选条件与关联字段；
-2. `order_reviews` 表：`idx_reviews_orderid(order_id, review_score)`，覆盖关联键与查询字段。
+1. **orders** 表：idx_orders_status(order_status, order_id)，覆盖筛选条件与关联字段；
+2. **order_reviews** 表：idx_reviews_orderid(order_id, review_score)，覆盖关联键与查询字段。
 
 #### 优化后执行计划分析
-- 两表 `type` 均为 `ref`，全部命中自建索引；
-- `order_reviews` 表 `rows` 降至1，`Extra` 显示 `Using index`，实现覆盖索引；
+- 两表 type 均为 ref，全部命中自建索引；
+- **order_reviews** 表 rows 降至1，Extra 显示 Using index，实现覆盖索引；
 - 左连接场景成功命中索引，在保证数据完整性的前提下，大幅降低扫描开销；
 - 查询性能显著改善，数据匹配速度明显提升。
 
